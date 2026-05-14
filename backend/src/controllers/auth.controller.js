@@ -1,6 +1,9 @@
 import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
+import { ENV } from "../lib/env.js";
+import { sendWelcomeEmail } from "../email/emailHandlers.js";
+
 export const signup = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -36,12 +39,19 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "Error creating user" });
     }
     else {
-        await newUser.save();
-        const token = generateToken(newUser._id,res);
+        const savedUser = await newUser.save();
+        const token = generateToken(savedUser._id,res);
        
 
         
-        res.status(201).json({ message: "User registered successfully", user: { _id: newUser._id, username, email }, token });
+        res.status(201).json({ message: "User registered successfully", user: { _id: savedUser._id, username, email }, token });
+
+        try {
+          
+          await sendWelcomeEmail(savedUser.email, savedUser.username, ENV.CLIENT_URL);
+        } catch (emailError) {
+          console.error("Error sending welcome email:", emailError);
+        }
     }
 
   } 
