@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import { ENV } from "./lib/env.js"; 
 import path from 'path';
 
@@ -13,6 +14,7 @@ const __dirname = path.resolve();
 const PORT = ENV.PORT || 3000;
 
 app.use(express.json());// req.body // to get data given by user in json format
+app.use(cookieParser()); // to parse cookies from incoming requests
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
