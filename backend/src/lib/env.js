@@ -11,5 +11,7 @@ export const ENV = {
     CLIENT_URL : process.env.CLIENT_URL,
     COUDINARY_CLOUD_NAME : process.env.COULDINARY_CLOUD_NAME,
     COUDINARY_API_KEY : process.env.COULDINARY_API_KEY,
-    COUDINARY_API_SECRET : process.env.COULDINARY_API_SECRET
+    COUDINARY_API_SECRET : process.env.COULDINARY_API_SECRET,
+    ARCJET_KEY : process.env.ARCJET_KEY,
+    ARCJET_ENV : process.env.ARCJET_ENV
 }
