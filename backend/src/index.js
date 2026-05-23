@@ -13,7 +13,7 @@ const __dirname = path.resolve();
 
 const PORT = ENV.PORT || 3000;
 
-app.use(express.json()); // req.body // to get data given by user in json format
+app.use(express.json({ limit: "10mb" })); // req.body // to get data given by user in json format
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true })); // to allow cross-origin requests from frontend to backend
 app.use(cookieParser()); // to parse cookies from incoming requests
 
