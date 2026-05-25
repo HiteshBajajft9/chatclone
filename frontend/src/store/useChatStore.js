@@ -41,21 +41,22 @@ export const useChatStore = create((set, get) => ({
       set({ chats: res.data });
     } catch (error) {
       console.error("Error fetching chats:", error);
-      toast.error("Failed to load chats. Please try again.");
+      toast.error(error?.response?.data?.message || "Failed to load chats. Please try again.");
     } finally {
       set({ isUsersLoading: false });
     }
   },
 
-  // getMessagesByUserId: async (userId) => {
-  //   set({ isMessagesLoading: true });
-  //   try {
-  //     const res = await axiosInstance.get(`/messages/chats/${userId}`);
-  //     set({ messages: res.data });
-  //   } catch (error) {
-  //     console.error("Error fetching messages:", error);
-  //     toast.error("Failed to load messages. Please try again.");
-  //   } finally {
-  //     set({ isMessagesLoading: false });
-  //   }
+  getMessagesByUserId: async (userId) => {
+    set({ isMessagesLoading: true });
+    try {
+      const res = await axiosInstance.get(`/messages/chats/${userId}`);
+      set({ messages: res.data });
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      toast.error(error?.response?.data?.message || "Failed to load messages. Please try again.");
+    } finally {
+      set({ isMessagesLoading: false });
+    }
+  },
 }));
