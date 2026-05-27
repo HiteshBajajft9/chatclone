@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
+import { io } from "socket.io-client";
+
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000" : "/";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -9,6 +12,8 @@ export const useAuthStore = create((set, get) => ({
   isLoggingIn: false,
   isLoggingOut: false,
   isUpdatingProfile: false,
+  socket: null,
+  onlineUsers: [],
 
   checkAuth: async () => {
     try {
@@ -28,6 +33,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/signup", { username, email, password });
       set({ authUser: res.data.user });
+      get().connectSocket();
 
       toast.success("Signup successful! Welcome to the chat app.");
     } catch (error) {
@@ -43,6 +49,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/login", { email, password });
       set({ authUser: res.data.user });
+      get().connectSocket();
 
       toast.success("Login successful! Welcome back.");
     } catch (error) {
@@ -58,7 +65,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       await axiosInstance.post("/auth/logout");
       set({ authUser: null });
-
+      get().disconnectSocket();
       toast.success("Logout successful! See you next time.");
     } catch (error) {
       toast.error("Logout failed. Please try again.");
@@ -79,6 +86,38 @@ export const useAuthStore = create((set, get) => ({
       console.error("Error updating profile:", error);
     } finally {
       set({ isUpdatingProfile: false });
+    }
+  },
+
+  connectSocket: () => {
+    const { authUser } = get();
+    if (!authUser) {
+      console.error("Cannot connect to socket: No authenticated user.");
+      return;
+    }
+    if (get().socket?.connected) {
+      console.log("Socket already connected.");
+      return;
+    }
+
+    const socket = io(BASE_URL, {
+      withCredentials: true,
+    });
+
+    socket.connect();
+
+    set({ socket });
+
+    // listen for online user from backend
+    socket.on("getOnlineUsers", (onlineUserIds) => {
+      console.log("Received online users from socket:", onlineUserIds);
+      set({ onlineUsers: onlineUserIds });
+    });
+  },
+
+  disconnectSocket: () => {
+    if (get().socket?.connected) {
+      get().socket?.disconnect();
     }
   },
 }));
