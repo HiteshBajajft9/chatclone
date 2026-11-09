@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { ENV } from "../lib/env.js";
 import { sendWelcomeEmail } from "../email/emailHandlers.js";
 import cloudinary from "../lib/cloudinary.js";
+import { invalidateUserCache } from "../middleware/auth.middleware.js";
 
 export const signup = async (req, res) => {
   const { username, email, password } = req.body;
@@ -134,7 +135,9 @@ export const updateProfile = async (req, res) => {
       userId,
       { profilePicture: uploadResponse.secure_url },
       { new: true }
-    );
+    ).select("-password"); // never send the password hash back to the client
+
+    invalidateUserCache(userId); // clear cached user so the new profile picture shows immediately
 
     res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
   } catch (error) {

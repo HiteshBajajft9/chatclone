@@ -21,14 +21,24 @@ export const getChatByUserId = async (req, res) => {
     const loggedInUserId = req.user._id;
     const otherUserId = req.params.userId;
 
-    const messages = await Message.find({
+    // Pagination: return the latest 50 messages; pass ?before=<date> to load older ones
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const before = req.query.before ? new Date(req.query.before) : null;
+
+    const query = {
       $or: [
         { senderId: loggedInUserId, receiverId: otherUserId },
         { senderId: otherUserId, receiverId: loggedInUserId },
       ],
-    }).sort({ createdAt: 1 });
+    };
+    if (before && !isNaN(before)) query.createdAt = { $lt: before };
 
-    res.status(200).json(messages);
+    const messages = await Message.find(query)
+      .sort({ createdAt: -1 }) // newest first, so the index can be used
+      .limit(limit)
+      .lean();
+
+    res.status(200).json(messages.reverse()); // oldest-to-newest for the chat UI
   } catch (error) {
     console.error("Error fetching chat:", error);
     res.status(500).json({ message: "Internal server error" });

@@ -23,7 +23,8 @@ const messageSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+// Compound index for chat history: find messages between two users, newest first
+messageSchema.index({ senderId: 1, receiverId: 1, createdAt: -1 });
 const Message = mongoose.model("Message", messageSchema);
 
 export default Message;
