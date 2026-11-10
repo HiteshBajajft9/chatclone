@@ -22,11 +22,19 @@ function ChatContainer() {
   } = useChatStore();
   const { authUser } = useAuthStore();
 
-  const messageEndRef = useRef(null); // bottom of the chat (scroll target for new messages)
   const containerRef = useRef(null); // the scrollable chat area
   const prevScrollHeightRef = useRef(null); // height before older messages were added
   const prevScrollTopRef = useRef(0); // scroll position before older messages were added
   const lastMessageIdRef = useRef(null); // id of the newest message we've scrolled to
+  const stickToBottomRef = useRef(true); // true while the user is at (or near) the bottom
+
+  // Scroll ONLY the chat area. (scrollIntoView also scrolls the page and every
+  // other scrollable parent, which pushed the whole layout up and left it stuck.)
+  const scrollToBottom = (behavior = "auto") => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior });
+  };
 
   useEffect(() => {
     lastMessageIdRef.current = null; // new chat: jump straight to the bottom once loaded
@@ -54,7 +62,8 @@ function ChatContainer() {
     const lastId = messages[messages.length - 1]?._id;
     if (lastId && lastId !== lastMessageIdRef.current) {
       const isFirstLoad = lastMessageIdRef.current === null;
-      messageEndRef.current?.scrollIntoView({ behavior: isFirstLoad ? "auto" : "smooth" });
+      scrollToBottom(isFirstLoad ? "auto" : "smooth");
+      stickToBottomRef.current = true;
       lastMessageIdRef.current = lastId;
     }
   }, [messages]);
@@ -63,6 +72,12 @@ function ChatContainer() {
   const handleScroll = async () => {
     const container = containerRef.current;
     if (!container) return;
+
+    // remember whether the user is reading the latest messages
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    stickToBottomRef.current = distanceFromBottom < 100;
+
     if (container.scrollTop > LOAD_MORE_THRESHOLD_PX) return;
     if (!hasMoreMessages || isLoadingOlder || isMessagesLoading) return;
 
@@ -100,8 +115,15 @@ function ChatContainer() {
                       : "bg-slate-800 text-slate-200"
                   }`}
                 >
+                  {/* images finish loading after the scroll, which left the chat short of the
+                      bottom: re-scroll on load if the user was at the bottom */}
                   {msg.image && (
-                    <img src={msg.image} alt="Shared" className="rounded-lg h-48 object-cover" />
+                    <img
+                      src={msg.image}
+                      alt="Shared"
+                      className="rounded-lg h-48 object-cover"
+                      onLoad={() => stickToBottomRef.current && scrollToBottom()}
+                    />
                   )}
                   {msg.text && <p className="mt-2">{msg.text}</p>}
                   <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
@@ -113,8 +135,6 @@ function ChatContainer() {
                 </div>
               </div>
             ))}
-            {/* 👇 scroll target */}
-            <div ref={messageEndRef} />
           </div>
         ) : isMessagesLoading ? (
           <MessagesLoadingSkeleton />

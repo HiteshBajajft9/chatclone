@@ -11,8 +11,9 @@ import NoConversationPlaceholder from "../components/NoConversationPlaceholder";
 function ChatPage() {
   const { activeTab, selectedUser } = useChatStore();
 
+  // Height is capped to the screen, so the page itself never needs to scroll
   return (
-    <div className="relative w-full max-w-6xl h-[800px]">
+    <div className="relative w-full max-w-6xl h-[min(800px,calc(100dvh_-_2rem))]">
       <BorderAnimatedContainer>
         {/* LEFT SIDE */}
         <div className="w-80 bg-slate-800/50 backdrop-blur-sm flex flex-col">
