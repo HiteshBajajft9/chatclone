@@ -4,7 +4,6 @@ A full-stack real-time messaging app built with React, Node.js, Express, Socket.
 
 **[Live demo](https://chitchat-723h.onrender.com)** · hosted on Render's free tier, so the first load can take 30–60 seconds while the server wakes up.
 
-<!-- TODO: replace with a screenshot of YOUR running app (chat view), saved as docs/screenshot.png -->
 ![Chitchat screenshot](docs/screenshot.png)
 
 ![React](https://img.shields.io/badge/React-20232a?style=flat&logo=react&logoColor=61DAFB)
